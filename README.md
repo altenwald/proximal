@@ -1,5 +1,10 @@
 # proXiMaL
 
+[![Build Status](https://github.com/altenwald/proximal/actions/workflows/elixir.yml/badge.svg)](https://github.com/altenwald/proximal/actions/workflows/elixir.yml)
+[![Coverage Status](https://coveralls.io/repos/github/altenwald/proximal/badge.svg)](https://coveralls.io/github/altenwald/proximal)
+[![License: LGPL 2.1](https://img.shields.io/github/license/altenwald/proximal.svg)](https://raw.githubusercontent.com/altenwald/proximal/master/COPYING)
+[![Hex](https://img.shields.io/hexpm/v/proximal.svg)](https://hex.pm/packages/proximal)
+
 [Saxy]: https://github.com/qcam/saxy
 [Nerves]: https://www.nerves-project.org/
 
