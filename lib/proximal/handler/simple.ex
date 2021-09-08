@@ -32,8 +32,4 @@ defmodule Proximal.Handler.Simple do
         {:ok, [parent | rest]}
     end
   end
-
-  def handle_event(:end_document, _, state) do
-    {:ok, state}
-  end
 end

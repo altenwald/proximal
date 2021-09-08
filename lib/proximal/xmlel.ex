@@ -144,7 +144,7 @@ defmodule Proximal.Xmlel do
       {"bar", [{"id", "10"}], [{:characters, "Hello!"}]}
 
       iex> Proximal.Xmlel.encode(%TestBuild{name: "bro"})
-      "<bro/>"
+      {"bro", [], []}
   """
   def encode(%Xmlel{} = xmlel) do
     children = Enum.map(xmlel.children, &encode/1)
@@ -153,12 +153,10 @@ defmodule Proximal.Xmlel do
 
   def encode(content) when is_binary(content), do: {:characters, content}
 
-  def encode(%struct_name{} = struct) do
-    builder = Module.concat(Saxy.Builder, struct_name)
-
+  def encode(%_{} = struct) do
     struct
-    |> builder.build()
-    |> Saxy.encode!(nil)
+    |> Proximal.to_xmlel()
+    |> encode()
   end
 
   defimpl String.Chars, for: __MODULE__ do
@@ -275,6 +273,15 @@ defmodule Proximal.Xmlel do
     end)
   end
 
+  @doc """
+  Provide the name of the children tags.
+
+  Examples:
+      iex> import Proximal.Xmlel, only: [sigil_x: 2]
+      iex> xmlel = ~x[<root><child1/><child2/><child3/></root>]
+      iex> Proximal.Xmlel.children_tag_names(xmlel)
+      ["child1", "child2", "child3"]
+  """
   def children_tag_names(%Xmlel{children: children}) do
     for %Xmlel{name: name} <- children do
       name
