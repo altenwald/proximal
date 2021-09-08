@@ -5,6 +5,7 @@ defmodule Proximal.MixProject do
     [
       app: :proximal,
       version: "0.1.0",
+      description: "proXiMaL is an advanced library for XML on top of Saxy",
       elixir: "~> 1.11",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
