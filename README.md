@@ -1,9 +1,9 @@
 # proXiMaL
 
-[![Build Status](https://github.com/altenwald/proximal/actions/workflows/elixir.yml/badge.svg)](https://github.com/altenwald/proximal/actions/workflows/elixir.yml)
-[![Coverage Status](https://coveralls.io/repos/github/altenwald/proximal/badge.svg)](https://coveralls.io/github/altenwald/proximal)
-[![License: LGPL 2.1](https://img.shields.io/github/license/altenwald/proximal.svg)](https://raw.githubusercontent.com/altenwald/proximal/master/COPYING)
-[![Hex](https://img.shields.io/hexpm/v/proximal.svg)](https://hex.pm/packages/proximal)
+[![Build Status](https://github.com/altenwald/proXiMaL/actions/workflows/elixir.yml/badge.svg)](https://github.com/altenwald/proXiMaL/actions/workflows/elixir.yml)
+[![Coverage Status](https://coveralls.io/repos/github/altenwald/proXiMaL/badge.svg)](https://coveralls.io/github/altenwald/proXiMaL)
+[![License: LGPL 2.1](https://img.shields.io/github/license/altenwald/proXiMaL.svg)](https://raw.githubusercontent.com/altenwald/proXiMaL/master/COPYING)
+[![Hex](https://img.shields.io/hexpm/v/proXiMaL.svg)](https://hex.pm/packages/proXiMaL)
 
 [Saxy]: https://github.com/qcam/saxy
 [Nerves]: https://www.nerves-project.org/
