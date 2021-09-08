@@ -5,7 +5,7 @@ defmodule Proximal.MixProject do
     [
       app: :proximal,
       version: "0.1.0",
-      elixir: "~> 1.10",
+      elixir: "~> 1.11",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       consolidate_protocols: Mix.env() != :test,
