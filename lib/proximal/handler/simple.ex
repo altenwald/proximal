@@ -11,7 +11,7 @@ defmodule Proximal.Handler.Simple do
   end
 
   def handle_event(:start_element, {tag_name, attributes}, stack) do
-    tag = %Xmlel{name: tag_name, attrs: Enum.into(attributes, %{})}
+    tag = Xmlel.new(tag_name, attributes)
     {:ok, [tag | stack]}
   end
 
@@ -20,7 +20,7 @@ defmodule Proximal.Handler.Simple do
     {:ok, [current | stack]}
   end
 
-  def handle_event(:end_element, tag_name, [%Xmlel{name: tag_name} = xmlel | stack]) do
+  def handle_event(:end_element, tag_name, [%Xmlel{full_name: tag_name} = xmlel | stack]) do
     current = %Xmlel{xmlel | children: Enum.reverse(xmlel.children)}
 
     case stack do

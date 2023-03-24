@@ -6,18 +6,30 @@ defmodule Proximal.Xmlel do
 
   alias Proximal.Xmlel
 
-  @type attr_name :: binary
-  @type attr_value :: binary
-  @type attrs :: %{attr_name => attr_value}
+  @type attr_name :: String.t() | {String.t(), String.t()}
+  @type attr_value :: String.t()
+  @type attrs :: %{attr_name() => attr_value()}
 
   @typedoc """
   Xmlel.`t` defines the `xmlel` element which contains the `name`, the
   `attrs` (attributes) and `children` for the XML tags.
   """
-  @type t :: %__MODULE__{name: binary, attrs: attrs, children: [t | binary | struct]}
-  @type children :: [t] | [String.t()]
+  @type t() :: %__MODULE__{
+          name: String.t(),
+          full_name: String.t(),
+          schema: String.t() | nil,
+          namespaces: %{String.t() => String.t()},
+          attrs: attrs(),
+          children: [t() | String.t() | struct()]
+        }
+  @type children() :: [t] | [String.t()]
 
-  defstruct name: nil, attrs: %{}, children: []
+  defstruct name: nil,
+            full_name: nil,
+            schema: nil,
+            namespaces: %{},
+            attrs: %{},
+            children: []
 
   @doc """
   Creates a Xmlel struct passing the `name` of the stanza, the `attrs`
@@ -30,23 +42,52 @@ defmodule Proximal.Xmlel do
 
   Examples:
       iex> Proximal.Xmlel.new("foo")
-      %Proximal.Xmlel{attrs: %{}, children: [], name: "foo"}
+      %Proximal.Xmlel{full_name: "foo", attrs: %{}, children: [], name: "foo"}
 
       iex> Proximal.Xmlel.new("bar", %{"id" => "10"})
-      %Proximal.Xmlel{attrs: %{"id" => "10"}, children: [], name: "bar"}
+      %Proximal.Xmlel{full_name: "bar", attrs: %{"id" => "10"}, children: [], name: "bar"}
 
       iex> Proximal.Xmlel.new("bar", [{"id", "10"}])
-      %Proximal.Xmlel{attrs: %{"id" => "10"}, children: [], name: "bar"}
+      %Proximal.Xmlel{full_name: "bar", attrs: %{"id" => "10"}, children: [], name: "bar"}
   """
-  @spec new(name :: binary, attrs | [{attr_name, attr_value}], children) :: t
+  @spec new(name :: String.t(), attrs() | [{attr_name(), attr_value()}], children()) :: t()
   def new(name, attrs \\ %{}, children \\ [])
 
   def new(name, attrs, children) when is_list(attrs) do
     new(name, Enum.into(attrs, %{}), children)
   end
 
-  def new(name, attrs, children) when is_map(attrs) do
-    %Xmlel{name: name, attrs: attrs, children: children}
+  def new(full_name, attrs, children) when is_map(attrs) do
+    {namespaces, attrs} =
+      Enum.split_with(attrs, fn {key, _value} -> String.starts_with?(key, "xmlns:") end)
+
+    attrs =
+      Map.new(attrs, fn {name, value} ->
+        case String.split(name, ":", parts: 2) do
+          [ns, name] -> {{ns, name}, value}
+          [name] -> {name, value}
+        end
+      end)
+
+    namespaces =
+      namespaces
+      |> Enum.map(fn {"xmlns:" <> key, value} -> {key, value} end)
+      |> Map.new()
+
+    {schema, name} =
+      case String.split(full_name, ":", parts: 2, trim: true) do
+        [name] -> {nil, name}
+        [schema, name] -> {schema, name}
+      end
+
+    %Xmlel{
+      full_name: full_name,
+      name: name,
+      schema: schema,
+      attrs: attrs,
+      namespaces: namespaces,
+      children: children
+    }
   end
 
   @doc """
@@ -58,7 +99,7 @@ defmodule Proximal.Xmlel do
       iex> ~X|<foo>
       iex> </foo>
       iex> |
-      %Proximal.Xmlel{attrs: %{}, children: ["\\n "], name: "foo"}
+      %Proximal.Xmlel{attrs: %{}, children: ["\\n "], name: "foo", full_name: "foo"}
   """
   def sigil_X(string, _addons) do
     {xml, _rest} = parse(string)
@@ -75,7 +116,7 @@ defmodule Proximal.Xmlel do
       iex> ~x|<foo>
       iex> </foo>
       iex> |
-      %Proximal.Xmlel{attrs: %{}, children: [], name: "foo"}
+      %Proximal.Xmlel{attrs: %{}, children: [], name: "foo", full_name: "foo"}
   """
   def sigil_x(string, _addons) do
     string
@@ -88,16 +129,16 @@ defmodule Proximal.Xmlel do
 
   Examples:
       iex> Proximal.Xmlel.parse("<foo/>")
-      {%Proximal.Xmlel{name: "foo", attrs: %{}, children: []}, ""}
+      {%Proximal.Xmlel{full_name: "foo", name: "foo", attrs: %{}, children: []}, ""}
 
       iex> Proximal.Xmlel.parse("<foo bar='10'>hello world!</foo>")
-      {%Proximal.Xmlel{name: "foo", attrs: %{"bar" => "10"}, children: ["hello world!"]}, ""}
+      {%Proximal.Xmlel{full_name: "foo", name: "foo", attrs: %{"bar" => "10"}, children: ["hello world!"]}, ""}
 
       iex> Proximal.Xmlel.parse("<foo><bar>hello world!</bar></foo>")
-      {%Proximal.Xmlel{name: "foo", attrs: %{}, children: [%Proximal.Xmlel{name: "bar", attrs: %{}, children: ["hello world!"]}]}, ""}
+      {%Proximal.Xmlel{full_name: "foo", name: "foo", attrs: %{}, children: [%Proximal.Xmlel{full_name: "bar", name: "bar", attrs: %{}, children: ["hello world!"]}]}, ""}
 
       iex> Proximal.Xmlel.parse("<foo/><bar/>")
-      {%Proximal.Xmlel{name: "foo", attrs: %{}, children: []}, "<bar/>"}
+      {%Proximal.Xmlel{full_name: "foo", name: "foo", attrs: %{}, children: []}, "<bar/>"}
   """
   def parse(xml) when is_binary(xml) do
     {:halt, [xmlel], more} = Saxy.parse_string(xml, Proximal.Handler.Simple, [])
@@ -110,13 +151,13 @@ defmodule Proximal.Xmlel do
 
   Examples:
       iex> Proximal.Xmlel.decode({"foo", [], []})
-      %Proximal.Xmlel{name: "foo", attrs: %{}, children: []}
+      %Proximal.Xmlel{full_name: "foo", name: "foo", attrs: %{}, children: []}
 
       iex> Proximal.Xmlel.decode({"foo", [], [{:characters, "1&1"}]})
-      %Proximal.Xmlel{name: "foo", children: ["1&1"]}
+      %Proximal.Xmlel{full_name: "foo", name: "foo", children: ["1&1"]}
 
       iex> Proximal.Xmlel.decode({"bar", [{"id", "10"}], ["Hello!"]})
-      %Proximal.Xmlel{name: "bar", attrs: %{"id" => "10"}, children: ["Hello!"]}
+      %Proximal.Xmlel{full_name: "bar", name: "bar", attrs: %{"id" => "10"}, children: ["Hello!"]}
   """
   def decode(data) when is_binary(data), do: data
 
@@ -128,8 +169,8 @@ defmodule Proximal.Xmlel do
   end
 
   def decode({name, attrs, children}) do
-    attrs = Enum.into(attrs, %{})
-    decode(%Xmlel{name: name, attrs: attrs, children: children})
+    new(name, attrs, children)
+    |> decode()
   end
 
   @doc """
@@ -146,9 +187,14 @@ defmodule Proximal.Xmlel do
       iex> Proximal.Xmlel.encode(%TestBuild{name: "bro"})
       {"bro", [], []}
   """
+  def encode(%Xmlel{schema: nil} = xmlel) do
+    children = Enum.map(xmlel.children, &encode/1)
+    {xmlel.name, get_attrs(xmlel), children}
+  end
+
   def encode(%Xmlel{} = xmlel) do
     children = Enum.map(xmlel.children, &encode/1)
-    {xmlel.name, Enum.into(xmlel.attrs, []), children}
+    {"#{xmlel.schema}:#{xmlel.name}", get_attrs(xmlel), children}
   end
 
   def encode(content) when is_binary(content), do: {:characters, content}
@@ -157,6 +203,18 @@ defmodule Proximal.Xmlel do
     struct
     |> Proximal.to_xmlel()
     |> encode()
+  end
+
+  defp get_attrs(%Xmlel{namespaces: ns, attrs: attrs}) do
+    namespaces = Enum.map(ns, fn {name, url} -> {"xmlns:#{name}", url} end)
+
+    attributes =
+      Enum.map(attrs, fn
+        {{ns, name}, value} -> {"#{ns}:#{name}", value}
+        {name, value} -> {name, value}
+      end)
+
+    namespaces ++ attributes
   end
 
   defimpl String.Chars, for: __MODULE__ do
@@ -211,15 +269,34 @@ defmodule Proximal.Xmlel do
   not provided then `nil` is used as default value.
 
   Examples:
-      iex> attrs = %{"id" => "100", "name" => "Alice"}
+      iex> attrs = %{"id" => "100", {"ns1", "name"} => "Alice"}
       iex> xmlel = %Proximal.Xmlel{attrs: attrs}
       iex> Proximal.Xmlel.get_attr(xmlel, "name")
+      "Alice"
+      iex> Proximal.Xmlel.get_attr(xmlel, "id")
+      "100"
+      iex> Proximal.Xmlel.get_attr(xmlel, "ns1:name")
       "Alice"
       iex> Proximal.Xmlel.get_attr(xmlel, "surname")
       nil
   """
   def get_attr(%Xmlel{attrs: attrs}, name, default \\ nil) do
-    Map.get(attrs, name, default)
+    with [^name] <- String.split(name, ":", parts: 2),
+         {:value, nil} <- {:value, Map.get(attrs, name)},
+         [{_name, value} | _] <- filter_by_name(attrs, name) do
+      value
+    else
+      {:value, value} -> value
+      [ns, name] -> Map.get(attrs, {ns, name}, default)
+      _ -> default
+    end
+  end
+
+  defp filter_by_name(attrs, name) do
+    Enum.filter(attrs, fn
+      {{_ns, bare_name}, _value} -> bare_name == name
+      {bare_name, _value} -> bare_name == name
+    end)
   end
 
   @doc """
@@ -347,7 +424,7 @@ defmodule Proximal.Xmlel do
       iex> import Proximal.Xmlel
       iex> el = ~x(<foo><c1 v="1"/><c1 v="2"/><c2/></foo>)
       iex> fetch(el, "c1")
-      {:ok, [%Proximal.Xmlel{attrs: %{"v" => "1"}, children: [], name: "c1"}, %Proximal.Xmlel{attrs: %{"v" => "2"}, children: [], name: "c1"}]}
+      {:ok, [%Proximal.Xmlel{attrs: %{"v" => "1"}, children: [], name: "c1", full_name: "c1"}, %Proximal.Xmlel{attrs: %{"v" => "2"}, children: [], name: "c1", full_name: "c1"}]}
       iex> fetch(el, "nonexistent")
       :error
   """
@@ -374,10 +451,10 @@ defmodule Proximal.Xmlel do
       iex> {els, values}
       iex> end
       iex> get_and_update(el, "c1", fun)
-      {[%Proximal.Xmlel{attrs: %{"v" => "1"}, children: [], name: "c1"}, %Proximal.Xmlel{attrs: %{"v" => "2"}, children: [], name: "c1"}], %Proximal.Xmlel{attrs: %{}, children: [%Proximal.Xmlel{attrs: %{"v" => "v1"}, children: [], name: "c1"}, %Proximal.Xmlel{attrs: %{"v" => "v2"}, children: [], name: "c1"}, %Proximal.Xmlel{attrs: %{}, children: [], name: "c2"}], name: "foo"}}
+      {[%Proximal.Xmlel{attrs: %{"v" => "1"}, children: [], name: "c1", full_name: "c1"}, %Proximal.Xmlel{attrs: %{"v" => "2"}, children: [], name: "c1", full_name: "c1"}], %Proximal.Xmlel{attrs: %{}, children: [%Proximal.Xmlel{attrs: %{"v" => "v1"}, children: [], name: "c1", full_name: "c1"}, %Proximal.Xmlel{attrs: %{"v" => "v2"}, children: [], name: "c1", full_name: "c1"}, %Proximal.Xmlel{attrs: %{}, children: [], name: "c2", full_name: "c2"}], name: "foo", full_name: "foo"}}
       iex> fun = fn _els -> :pop end
       iex> get_and_update(el, "c1", fun)
-      {[%Proximal.Xmlel{attrs: %{"v" => "1"}, children: [], name: "c1"}, %Proximal.Xmlel{attrs: %{"v" => "2"}, children: [], name: "c1"}], %Proximal.Xmlel{attrs: %{}, children: [%Proximal.Xmlel{attrs: %{}, children: [], name: "c2"}], name: "foo"}}
+      {[%Proximal.Xmlel{attrs: %{"v" => "1"}, children: [], name: "c1", full_name: "c1"}, %Proximal.Xmlel{attrs: %{"v" => "2"}, children: [], name: "c1", full_name: "c1"}], %Proximal.Xmlel{attrs: %{}, children: [%Proximal.Xmlel{attrs: %{}, children: [], name: "c2", full_name: "c2"}], name: "foo", full_name: "foo"}}
   """
   def get_and_update(%Xmlel{children: children} = xmlel, key, function) do
     %{match: match, nonmatch: nonmatch} = split_children(children, key)
@@ -399,9 +476,9 @@ defmodule Proximal.Xmlel do
       iex> import Proximal.Xmlel
       iex> el = ~x(<foo><c1 v="1"/><c1 v="2"/><c2/></foo>)
       iex> pop(el, "c1")
-      {[%Proximal.Xmlel{attrs: %{"v" => "1"}, children: [], name: "c1"}, %Proximal.Xmlel{attrs: %{"v" => "2"}, children: [], name: "c1"}], %Proximal.Xmlel{attrs: %{}, children: [%Proximal.Xmlel{attrs: %{}, children: [], name: "c2"}], name: "foo"}}
+      {[%Proximal.Xmlel{attrs: %{"v" => "1"}, children: [], name: "c1", full_name: "c1"}, %Proximal.Xmlel{attrs: %{"v" => "2"}, children: [], name: "c1", full_name: "c1"}], %Proximal.Xmlel{attrs: %{}, children: [%Proximal.Xmlel{attrs: %{}, children: [], name: "c2", full_name: "c2"}], name: "foo", full_name: "foo"}}
       iex> pop(el, "nonexistent")
-      {[], %Proximal.Xmlel{attrs: %{}, children: [%Proximal.Xmlel{attrs: %{"v" => "1"}, children: [], name: "c1"}, %Proximal.Xmlel{attrs: %{"v" => "2"}, children: [], name: "c1"}, %Proximal.Xmlel{attrs: %{}, children: [], name: "c2"}], name: "foo"}}
+      {[], %Proximal.Xmlel{attrs: %{}, children: [%Proximal.Xmlel{attrs: %{"v" => "1"}, children: [], name: "c1", full_name: "c1"}, %Proximal.Xmlel{attrs: %{"v" => "2"}, children: [], name: "c1", full_name: "c1"}, %Proximal.Xmlel{attrs: %{}, children: [], name: "c2", full_name: "c2"}], name: "foo", full_name: "foo"}}
   """
   def pop(%Xmlel{children: children} = element, key) do
     case split_children(children, key) do

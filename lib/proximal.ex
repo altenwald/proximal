@@ -12,7 +12,7 @@ defimpl Proximal, for: BitString do
 
   Examples:
       iex> Proximal.to_xmlel("<data/>")
-      %Proximal.Xmlel{attrs: %{}, children: [], name: "data"}
+      %Proximal.Xmlel{full_name: "data", attrs: %{}, children: [], name: "data"}
   """
   def to_xmlel(data) do
     data

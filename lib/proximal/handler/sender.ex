@@ -20,7 +20,7 @@ defmodule Proximal.Handler.Sender do
     {:ok, stack} = Simple.handle_event(:start_element, {tag_name, attributes}, data.stack)
 
     case stack do
-      [%Xmlel{name: "stream:stream", children: []}] ->
+      [%Xmlel{name: "stream", children: []}] ->
         {:halt, data.pid}
 
       _ ->

@@ -144,28 +144,14 @@ defmodule Proximal.Handler.SenderTest do
         {:xmlstreamstart, "sm", [{"xmlns", "urn:xmpp:sm:2"}]},
         {:xmlstreamstart, "sm", [{"xmlns", "urn:xmpp:sm:3"}]},
         {:xmlelement,
-         %Xmlel{
-           children: [
-             %Xmlel{
-               attrs: %{"xmlns" => "urn:ietf:params:xml:ns:xmpp-bind"},
-               name: "bind"
-             },
-             %Xmlel{
-               attrs: %{"xmlns" => "urn:ietf:params:xml:ns:xmpp-session"},
-               children: [%Xmlel{name: "optional"}],
-               name: "session"
-             },
-             %Xmlel{
-               attrs: %{"xmlns" => "urn:xmpp:sm:2"},
-               name: "sm"
-             },
-             %Xmlel{
-               attrs: %{"xmlns" => "urn:xmpp:sm:3"},
-               name: "sm"
-             }
-           ],
-           name: "stream:features"
-         }}
+         Xmlel.new("stream:features", %{}, [
+           Xmlel.new("bind", %{"xmlns" => "urn:ietf:params:xml:ns:xmpp-bind"}),
+           Xmlel.new("session", %{"xmlns" => "urn:ietf:params:xml:ns:xmpp-session"}, [
+             Xmlel.new("optional")
+           ]),
+           Xmlel.new("sm", %{"xmlns" => "urn:xmpp:sm:2"}),
+           Xmlel.new("sm", %{"xmlns" => "urn:xmpp:sm:3"})
+         ])}
       ]
 
       assert events == receive_all()
