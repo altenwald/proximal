@@ -39,7 +39,7 @@ defmodule Proximal.MixProject do
 
   defp deps do
     [
-      {:saxy, "~> 1.4.0"},
+      {:saxy, "~> 1.4"},
       {:ex_doc, ">= 0.0.0", optional: true, only: :dev},
       {:dialyxir, "~> 1.0", optional: true, only: :dev, runtime: false},
       {:excoveralls, "~> 0.14", optional: true, only: :test}
