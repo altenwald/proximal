@@ -6,6 +6,12 @@ defmodule Proximal.Handler.Sender do
   alias Proximal.Handler.Simple
   alias Proximal.Xmlel
 
+  @type t() :: %__MODULE__{
+    pid: pid() | nil,
+    stack: [Xmlel.t()],
+    debug_xml: boolean()
+  }
+
   defstruct pid: nil, stack: [], debug_xml: false
 
   @impl Saxy.Handler

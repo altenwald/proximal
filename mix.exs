@@ -4,7 +4,7 @@ defmodule Proximal.MixProject do
   def project do
     [
       app: :proximal,
-      version: "0.2.1",
+      version: "0.2.2",
       description: "proXiMaL is an advanced library for XML on top of Saxy",
       elixir: "~> 1.11",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -12,18 +12,10 @@ defmodule Proximal.MixProject do
       consolidate_protocols: Mix.env() != :test,
       dialyzer: [plt_add_apps: [:mix]],
       deps: deps(),
-      aliases: aliases(),
       package: package(),
       docs: docs(),
-      test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
-        coveralls: :test,
-        "coveralls.detail": :test,
-        "coveralls.json": :test,
-        "coveralls.html": :test,
-        "coveralls.post": :test,
-        "coveralls.github": :test,
-        actions: :test
+        check: :test
       ]
     ]
   end
@@ -40,20 +32,14 @@ defmodule Proximal.MixProject do
   defp deps do
     [
       {:saxy, "~> 1.4"},
-      {:ex_doc, ">= 0.0.0", optional: true, only: :dev},
-      {:dialyxir, "~> 1.0", optional: true, only: :dev, runtime: false},
-      {:excoveralls, "~> 0.14", optional: true, only: :test}
-    ]
-  end
 
-  defp aliases do
-    [
-      actions: [
-        "local.hex --force",
-        "local.rebar --force",
-        "deps.get",
-        "coveralls.github"
-      ]
+      # only for dev
+      {:dialyxir, ">= 0.0.0", only: [:dev, :test], runtime: false},
+      {:credo, ">= 0.0.0", only: [:dev, :test], runtime: false},
+      {:doctor, ">= 0.0.0", only: [:dev, :test], runtime: false},
+      {:ex_check, "~> 0.14", only: [:dev, :test], runtime: false},
+      {:ex_doc, ">= 0.0.0", only: [:dev, :test], runtime: false},
+      {:mix_audit, ">= 0.0.0", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -61,7 +47,7 @@ defmodule Proximal.MixProject do
     [
       files: ~w[ lib mix.exs mix.lock README.md COPYING ],
       maintainers: ["Manuel Rubio"],
-      licenses: ["LGPL 2.1"],
+      licenses: ["MIT"],
       links: %{
         "GitHub" => "https://github.com/altenwald/proximal"
       }
