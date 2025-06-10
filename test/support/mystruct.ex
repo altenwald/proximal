@@ -1,4 +1,5 @@
 defmodule MyStruct do
+  @moduledoc false
   use Proximal.Document
   alias Proximal.Xmlel
 

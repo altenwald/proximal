@@ -7,10 +7,10 @@ defmodule Proximal.Handler.Sender do
   alias Proximal.Xmlel
 
   @type t() :: %__MODULE__{
-    pid: pid() | nil,
-    stack: [Xmlel.t()],
-    debug_xml: boolean()
-  }
+          pid: pid() | nil,
+          stack: [Xmlel.t()],
+          debug_xml: boolean()
+        }
 
   defstruct pid: nil, stack: [], debug_xml: false
 

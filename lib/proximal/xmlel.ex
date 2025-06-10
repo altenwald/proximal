@@ -219,8 +219,8 @@ defmodule Proximal.Xmlel do
 
   defimpl String.Chars, for: __MODULE__ do
     alias Proximal.Xmlel
-    alias Saxy.Encoder
     alias Saxy.Builder
+    alias Saxy.Encoder
 
     @doc """
     Implements `to_string/1` to convert a XML entity to a `xmlel`

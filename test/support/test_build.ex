@@ -1,4 +1,5 @@
 defmodule TestBuild do
+  @moduledoc false
   use Proximal.Document
 
   defstruct name: nil
