@@ -14,9 +14,6 @@ defmodule Proximal.MixProject do
       package: package(),
       docs: docs(),
       aliases: aliases(),
-      preferred_cli_env: [
-        check: :test
-      ],
       test_coverage: [
         ignore_modules: [
           Proximal.BufferingHelper,
@@ -25,6 +22,14 @@ defmodule Proximal.MixProject do
           Proximal.Parser.Builder,
           Proximal.Parser.Lookahead
         ]
+      ]
+    ]
+  end
+
+  def cli do
+    [
+      preferred_envs: [
+        check: :test
       ]
     ]
   end
@@ -70,7 +75,7 @@ defmodule Proximal.MixProject do
 
   defp aliases do
     [
-      "hex.publish": ["prisma.build", "hex.publish"]
+      publish: ["prisma.build", "hex.publish"]
     ]
   end
 end
