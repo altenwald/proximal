@@ -20,8 +20,12 @@ defmodule Proximal.Encoder do
 
   def encode_to_iodata(%_{} = struct, prolog) do
     struct
-    |> Proximal.to_xmlel()
+    |> to_xmlel()
     |> encode_to_iodata(prolog)
+  end
+
+  defp to_xmlel(struct) do
+    apply(Proximal, :to_xmlel, [struct])
   end
 
   defp prolog(%Prolog{} = prolog) do
@@ -121,7 +125,7 @@ defmodule Proximal.Encoder do
   end
 
   defp content([%_{} = struct | rest]) do
-    [struct |> Proximal.to_xmlel() |> element() | content(rest)]
+    [struct |> to_xmlel() |> element() | content(rest)]
   end
 
   @escapes [

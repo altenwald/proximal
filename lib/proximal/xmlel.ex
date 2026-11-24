@@ -200,8 +200,8 @@ defmodule Proximal.Xmlel do
   def encode(content) when is_binary(content), do: {:characters, content}
 
   def encode(%_{} = struct) do
-    struct
-    |> Proximal.to_xmlel()
+    Proximal
+    |> apply(:to_xmlel, [struct])
     |> encode()
   end
 
