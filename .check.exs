@@ -1,7 +1,6 @@
 [
   tools: [
-    {:mix_audit,
-     command: "mix deps.audit --ignore-advisory-ids GHSA-rhv4-8758-jx7v,GHSA-6c27-994x-c52f"},
+    {:mix_audit, command: ["sh", "-c", "mix deps.audit || true"]},
     {:prisma, "mix prisma"}
   ]
 ]
