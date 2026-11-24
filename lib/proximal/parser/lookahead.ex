@@ -38,17 +38,7 @@ defmodule Proximal.Parser.Lookahead do
   defp build_clause([{:when, _, [left, guards]}], code, streaming?) do
     case left do
       {:in, _, [token_var, tokens]} ->
-        if streaming? do
-          Enum.flat_map(tokens, fn token ->
-            quote do
-              unquote(token) when unquote(guards) ->
-                unquote(token_var) = unquote(token)
-                unquote(code)
-            end
-          end)
-        else
-          []
-        end
+        build_in_clauses(token_var, tokens, guards, code, streaming?)
 
       {:<>, _, [ahead, rest]} ->
         quote do
@@ -62,5 +52,17 @@ defmodule Proximal.Parser.Lookahead do
     quote do
       unquote(other) -> unquote(code)
     end
+  end
+
+  defp build_in_clauses(_token_var, _tokens, _guards, _code, false), do: []
+
+  defp build_in_clauses(token_var, tokens, guards, code, true) do
+    Enum.flat_map(tokens, fn token ->
+      quote do
+        unquote(token) when unquote(guards) ->
+          unquote(token_var) = unquote(token)
+          unquote(code)
+      end
+    end)
   end
 end
