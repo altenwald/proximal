@@ -4,7 +4,7 @@ defmodule Proximal.MixProject do
   def project do
     [
       app: :proximal,
-      version: "1.0.0",
+      version: "1.0.1",
       description: "proXiMaL is an advanced 100% Elixir, zero-dependency XML library",
       elixir: "~> 1.11",
       elixirc_paths: elixirc_paths(Mix.env()),
