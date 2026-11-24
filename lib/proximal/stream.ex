@@ -1,55 +1,61 @@
 defmodule Proximal.Stream do
   @moduledoc """
-  Process a stream chunk by chunk to obtain a XML document.
-  The stream is initiated passing a PID where the information
-  from the chunks are going to be received.
+  Process a stream chunk by chunk to obtain XML documents or stanzas continuously.
+  The stream is initiated passing a PID where the parsed elements from the chunks
+  are going to be sent.
 
-  The parser is using `Proximal.Handler.Sender` which is
-  responsible to convert the stream data into a valid `%Xmlel{}`
-  and send it back to the specified process.
+  The parser uses `Proximal.Handler.Sender`, which converts the stream data into
+  `%Proximal.Xmlel{}` structs and sends them back to the specified process.
   """
 
-  alias Saxy.Partial
+  alias Proximal.Partial
 
   @handler Proximal.Handler.Sender
 
   @doc """
-  Creates a new `Saxy.Partial` struct to parser little by little
-  the incoming stream. The information is sent back to the `pid`
-  passed as a paramter, by default this is set as `self()`.
+  Creates a new `Proximal.Partial` struct to parse the incoming stream
+  continuously. Events are sent back to `pid`, which defaults to `self()`.
   """
   def new(pid \\ self()) do
-    {:ok, partial} = Partial.new(@handler, pid)
+    {:ok, partial} = Partial.new(@handler, pid, continuous: true)
     partial
   end
 
   @doc """
-  Use it to send every chunk of the XML document(s) we want to
-  parse. Every `chunk` will be sent back to the process passed
-  initially in the new function through the `partial` parameter.
+  Sends a chunk of XML data to the stream parser.
   """
-  def parse({:cont, partial}, chunk), do: parse(partial, chunk)
+  def parse({:cont, partial}, chunk), do: Partial.parse(partial, chunk)
 
   def parse({:halt, pid, rest}, chunk) do
     pid
     |> new()
-    |> parse(rest <> chunk)
+    |> Partial.parse(rest <> chunk)
   end
+
+  def parse({:error, _} = error, _chunk), do: error
 
   def parse(partial, chunk) do
     Partial.parse(partial, chunk)
   end
 
   @doc """
-  When we wants to send the rest of the XML document(s) we
-  have to use this function which let us to finalise the
-  `partial` data.
-
-  Note that because a change into the Saxy 1.4, everytime we
-  terminate a ending document, it will be in the `:halt` state,
-  otherwise it will generate a parsing error.
+  Finalises the stream parser, ensuring any remaining state is closed cleanly.
   """
+  def terminate({:cont, partial}) do
+    with {:ok, _state} <- Partial.terminate(partial) do
+      {:ok, ""}
+    end
+  end
+
   def terminate({:halt, _state, rest}) do
     {:ok, rest}
+  end
+
+  def terminate({:error, _} = error), do: error
+
+  def terminate(%Partial{} = partial) do
+    with {:ok, _state} <- Partial.terminate(partial) do
+      {:ok, ""}
+    end
   end
 end

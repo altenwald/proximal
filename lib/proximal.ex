@@ -1,7 +1,7 @@
 defprotocol Proximal do
   @moduledoc """
-  Proximal protocol is containing the function `to_xmlel/1` which is important
-  to transform a data structure into the `Xmlel` structure from Saxy.
+  Proximal protocol contains `to_xmlel/1` to transform a data structure into
+  a `Proximal.Xmlel` struct.
   """
 
   @doc """

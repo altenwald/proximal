@@ -4,18 +4,27 @@ defmodule Proximal.MixProject do
   def project do
     [
       app: :proximal,
-      version: "0.2.3",
-      description: "proXiMaL is an advanced library for XML on top of Saxy",
+      version: "1.0.0",
+      description: "proXiMaL is an advanced 100% Elixir, zero-dependency XML library",
       elixir: "~> 1.11",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       consolidate_protocols: Mix.env() != :test,
-      dialyzer: [plt_add_apps: [:mix]],
       deps: deps(),
       package: package(),
       docs: docs(),
+      aliases: aliases(),
       preferred_cli_env: [
         check: :test
+      ],
+      test_coverage: [
+        ignore_modules: [
+          Proximal.BufferingHelper,
+          Proximal.Document,
+          Proximal.Guards,
+          Proximal.Parser.Builder,
+          Proximal.Parser.Lookahead
+        ]
       ]
     ]
   end
@@ -31,10 +40,8 @@ defmodule Proximal.MixProject do
 
   defp deps do
     [
-      {:saxy, "~> 1.4"},
-
-      # only for dev
-      {:dialyxir, ">= 0.0.0", only: [:dev, :test], runtime: false},
+      # only for dev/test
+      {:prisma, "~> 0.2", only: [:dev, :test], runtime: false},
       {:credo, ">= 0.0.0", only: [:dev, :test], runtime: false},
       {:doctor, ">= 0.0.0", only: [:dev, :test], runtime: false},
       {:ex_check, "~> 0.14", only: [:dev, :test], runtime: false},
@@ -45,7 +52,7 @@ defmodule Proximal.MixProject do
 
   defp package do
     [
-      files: ~w[ lib mix.exs mix.lock README.md COPYING ],
+      files: ~w[ lib mix.exs mix.lock README.md LICENSE proximal_*.pplt ],
       maintainers: ["Manuel Rubio"],
       licenses: ["MIT"],
       links: %{
@@ -58,6 +65,12 @@ defmodule Proximal.MixProject do
     [
       main: "readme",
       extras: ["README.md"]
+    ]
+  end
+
+  defp aliases do
+    [
+      "hex.publish": ["prisma.build", "hex.publish"]
     ]
   end
 end

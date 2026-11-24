@@ -141,8 +141,8 @@ defmodule Proximal.Xmlel do
       {%Proximal.Xmlel{full_name: "foo", name: "foo", attrs: %{}, children: []}, "<bar/>"}
   """
   def parse(xml) when is_binary(xml) do
-    {:halt, [xmlel], more} = Saxy.parse_string(xml, Proximal.Handler.Simple, [])
-    {decode(xmlel), more}
+    {:halt, [xmlel], more} = Proximal.Parser.parse_string(xml, Proximal.Handler.Simple, [])
+    {xmlel, more}
   end
 
   @doc """
@@ -217,10 +217,24 @@ defmodule Proximal.Xmlel do
     namespaces ++ attributes
   end
 
+  @doc """
+  Encodes a `%Proximal.Xmlel{}` struct (or a struct implementing `Proximal`)
+  into `iodata` in a single pass.
+
+  Examples:
+      iex> Proximal.Xmlel.new("foo") |> Proximal.Xmlel.to_iodata() |> IO.iodata_to_binary()
+      "<foo/>"
+
+      iex> Proximal.Xmlel.new("bar", %{"id" => "10"}, ["hi"]) |> Proximal.Xmlel.to_iodata() |> IO.iodata_to_binary()
+      "<bar id=\\"10\\">hi</bar>"
+  """
+  @spec to_iodata(t() | struct(), Proximal.Prolog.t() | keyword() | nil) :: iodata()
+  def to_iodata(xmlel, prolog \\ nil) do
+    Proximal.Encoder.encode_to_iodata(xmlel, prolog)
+  end
+
   defimpl String.Chars, for: __MODULE__ do
     alias Proximal.Xmlel
-    alias Saxy.Builder
-    alias Saxy.Encoder
 
     @doc """
     Implements `to_string/1` to convert a XML entity to a `xmlel`
@@ -242,24 +256,8 @@ defmodule Proximal.Xmlel do
     """
     def to_string(xmlel) do
       xmlel
-      |> Xmlel.encode()
-      |> Builder.build()
-      |> Encoder.encode_to_iodata(nil)
-      |> IO.chardata_to_string()
-    end
-  end
-
-  defimpl Saxy.Builder, for: Xmlel do
-    @moduledoc false
-    @doc """
-    Generates the Saxy tuples from `xmlel` structs.
-
-    Examples:
-        iex> Saxy.Builder.build(Proximal.Xmlel.new("foo", %{}, []))
-        {"foo", [], []}
-    """
-    def build(xmlel) do
-      Xmlel.encode(xmlel)
+      |> Xmlel.to_iodata()
+      |> IO.iodata_to_binary()
     end
   end
 

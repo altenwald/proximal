@@ -85,17 +85,18 @@ defmodule Proximal.Handler.SenderTest do
                |> XmlStream.parse(" Hello world!<bar>")
     end
 
-    test "more than one stanza" do
+    test "more than one stanza continuously without halting" do
       Application.put_env(:proximal, :debug_xml, false)
 
-      assert {:ok, ""} =
+      assert {:cont, partial} =
                XmlStream.new()
                |> XmlStream.parse("<foo id='1'")
                |> XmlStream.parse(">Hello world!")
                |> XmlStream.parse("</foo>")
-               |> XmlStream.parse("<bar>more data</bar>")
-               |> XmlStream.parse("<baz>and more</baz>")
-               |> XmlStream.terminate()
+
+      assert {:cont, partial} = XmlStream.parse(partial, "<bar>more data</bar>")
+      assert {:cont, partial} = XmlStream.parse(partial, "<baz>and more</baz>")
+      assert {:ok, ""} = XmlStream.terminate(partial)
 
       events = [
         {:xmlstreamstart, "foo", [{"id", "1"}]},
@@ -132,9 +133,11 @@ defmodule Proximal.Handler.SenderTest do
 
       assert events == receive_all()
 
-      assert {:halt, _, ""} =
+      assert {:cont, partial} =
                XmlStream.new()
                |> XmlStream.parse(data)
+
+      assert {:ok, ""} = XmlStream.terminate(partial)
 
       events = [
         {:xmlstreamstart, "stream:features", []},

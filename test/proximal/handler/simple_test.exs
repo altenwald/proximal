@@ -5,7 +5,7 @@ defmodule Proximal.Handler.SimpleTest do
   describe "parsing" do
     test "parse simple document" do
       document = "<root><child1/></root>"
-      result = Saxy.parse_string(document, Proximal.Handler.Simple, [])
+      result = Proximal.Parser.parse_string(document, Proximal.Handler.Simple, [])
 
       assert {:halt,
               [

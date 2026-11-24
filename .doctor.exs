@@ -1,5 +1,11 @@
 %Doctor.Config{
-  ignore_modules: [Proximal],
+  ignore_modules: [
+    Proximal,
+    Proximal.BufferingHelper,
+    Proximal.Emitter,
+    Proximal.Parser.Builder,
+    Proximal.Parser.Lookahead
+  ],
   ignore_paths: [],
   min_module_doc_coverage: 40,
   min_module_spec_coverage: 0,

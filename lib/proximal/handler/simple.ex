@@ -1,11 +1,11 @@
 defmodule Proximal.Handler.Simple do
   @moduledoc false
 
-  @behaviour Saxy.Handler
+  @behaviour Proximal.Handler
 
   alias Proximal.Xmlel
 
-  @impl Saxy.Handler
+  @impl Proximal.Handler
   def handle_event(:start_document, _prolog, _state) do
     {:ok, []}
   end
@@ -31,5 +31,9 @@ defmodule Proximal.Handler.Simple do
         parent = %Xmlel{parent | children: [current | parent_content]}
         {:ok, [parent | rest]}
     end
+  end
+
+  def handle_event(:end_document, _data, stack) do
+    {:ok, stack}
   end
 end
