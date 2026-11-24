@@ -1,5 +1,7 @@
 defmodule Proximal.Parser do
-  @moduledoc false
+  @moduledoc """
+  XML parser entry point for binary documents.
+  """
 
   alias Proximal.ParseError
   alias Proximal.State

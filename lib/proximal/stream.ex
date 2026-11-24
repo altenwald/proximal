@@ -4,8 +4,8 @@ defmodule Proximal.Stream do
   The stream is initiated passing a PID where the parsed elements from the chunks
   are going to be sent.
 
-  The parser uses `Proximal.Handler.Sender`, which converts the stream data into
-  `%Proximal.Xmlel{}` structs and sends them back to the specified process.
+  The parser converts the stream data into `%Proximal.Xmlel{}` structs and
+  sends them back to the specified process.
   """
 
   alias Proximal.Partial

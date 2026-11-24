@@ -69,7 +69,9 @@ defmodule Proximal.MixProject do
   defp docs do
     [
       main: "readme",
-      extras: ["README.md"]
+      logo: "assets/logo.svg",
+      assets: %{"assets" => "assets"},
+      extras: ["README.md", "LICENSE"]
     ]
   end
 

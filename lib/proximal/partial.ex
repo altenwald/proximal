@@ -12,7 +12,7 @@ defmodule Proximal.Partial do
 
   @type t() :: %__MODULE__{
           context_fun: function(),
-          state: State.t()
+          state: term()
         }
 
   @doc """
